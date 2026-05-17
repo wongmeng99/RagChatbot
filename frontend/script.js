@@ -30,6 +30,11 @@ function setupEventListeners() {
     });
     
     
+    // New chat button
+    document.getElementById('newChatBtn').addEventListener('click', () => {
+        createNewSession(true);
+    });
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -122,10 +127,17 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        const sourceHtml = sources.map(s => {
+            const url = safeHttpUrl(s.link);
+            const label = escapeHtml(s.text);
+            return url
+                ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="source-pill">${label}</a>`
+                : `<span class="source-pill">${label}</span>`;
+        }).join('');
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${sourceHtml}</div>
             </details>
         `;
     }
@@ -144,9 +156,25 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Returns the URL only if it's a safe http/https link, otherwise null
+function safeHttpUrl(url) {
+    if (!url) return null;
+    try {
+        const parsed = new URL(url);
+        return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? escapeHtml(url) : null;
+    } catch {
+        return null;
+    }
+}
+
 // Removed removeMessage function - no longer needed since we handle loading differently
 
-async function createNewSession() {
+async function createNewSession(clearBackend = false) {
+    if (clearBackend && currentSessionId) {
+        try {
+            await fetch(`${API_URL}/session/${currentSessionId}`, { method: 'DELETE' });
+        } catch (_) {}
+    }
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
