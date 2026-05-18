@@ -4,10 +4,10 @@ Tests for VectorStore.
 chromadb.PersistentClient and SentenceTransformerEmbeddingFunction are patched
 throughout to avoid filesystem access and model downloads.
 """
+
 import pytest
 from unittest.mock import MagicMock, patch, call
 from vector_store import VectorStore, SearchResults
-
 
 CHROMA_RESULTS_ONE_DOC = {
     "documents": [["some lesson text"]],
@@ -24,10 +24,12 @@ CHROMA_RESULTS_EMPTY = {
 
 def _make_store():
     """Return a VectorStore with all ChromaDB side-effects patched out."""
-    with patch("chromadb.PersistentClient") as mock_client_cls, \
-         patch(
-             "chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction"
-         ) as mock_ef_cls:
+    with (
+        patch("chromadb.PersistentClient") as mock_client_cls,
+        patch(
+            "chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction"
+        ) as mock_ef_cls,
+    ):
 
         mock_client = MagicMock()
         mock_client_cls.return_value = mock_client
@@ -35,7 +37,9 @@ def _make_store():
         mock_collection = MagicMock()
         mock_client.get_or_create_collection.return_value = mock_collection
 
-        store = VectorStore(chroma_path="./fake_db", embedding_model="fake-model", max_results=5)
+        store = VectorStore(
+            chroma_path="./fake_db", embedding_model="fake-model", max_results=5
+        )
         # Expose the mock collection on the store so tests can configure it
         store._mock_collection = mock_collection
         return store
@@ -45,10 +49,13 @@ def _make_store():
 # SearchResults helpers
 # ---------------------------------------------------------------------------
 
+
 def test_search_results_from_chroma_unpacks_nested_lists():
     sr = SearchResults.from_chroma(CHROMA_RESULTS_ONE_DOC)
     assert sr.documents == ["some lesson text"]
-    assert sr.metadata == [{"course_title": "Python", "lesson_number": 1, "chunk_index": 0}]
+    assert sr.metadata == [
+        {"course_title": "Python", "lesson_number": 1, "chunk_index": 0}
+    ]
     assert sr.distances == [0.15]
     assert sr.error is None
 
@@ -71,6 +78,7 @@ def test_search_results_empty_factory():
 # _build_filter
 # ---------------------------------------------------------------------------
 
+
 def test_build_filter_no_args_returns_none():
     store = _make_store()
     assert store._build_filter(None, None) is None
@@ -91,12 +99,15 @@ def test_build_filter_lesson_only():
 def test_build_filter_course_and_lesson():
     store = _make_store()
     f = store._build_filter("Python Fundamentals", 3)
-    assert f == {"$and": [{"course_title": "Python Fundamentals"}, {"lesson_number": 3}]}
+    assert f == {
+        "$and": [{"course_title": "Python Fundamentals"}, {"lesson_number": 3}]
+    }
 
 
 # ---------------------------------------------------------------------------
 # VectorStore.search — filter construction and where= handling
 # ---------------------------------------------------------------------------
+
 
 def test_search_no_filters_passes_where_none_to_chroma():
     """
@@ -121,7 +132,9 @@ def test_search_with_course_name_resolved_builds_course_title_filter():
     store.course_content = MagicMock()
     store.course_content.query.return_value = CHROMA_RESULTS_ONE_DOC
 
-    with patch.object(store, "_resolve_course_name", return_value="Python Fundamentals"):
+    with patch.object(
+        store, "_resolve_course_name", return_value="Python Fundamentals"
+    ):
         store.search("loops", course_name="Python")
 
     kwargs = store.course_content.query.call_args[1]
@@ -133,7 +146,9 @@ def test_search_with_course_and_lesson_builds_and_filter():
     store.course_content = MagicMock()
     store.course_content.query.return_value = CHROMA_RESULTS_ONE_DOC
 
-    with patch.object(store, "_resolve_course_name", return_value="Python Fundamentals"):
+    with patch.object(
+        store, "_resolve_course_name", return_value="Python Fundamentals"
+    ):
         store.search("loops", course_name="Python", lesson_number=3)
 
     kwargs = store.course_content.query.call_args[1]
@@ -176,7 +191,9 @@ def test_search_returns_search_results_on_success():
     result = store.search("python loops")
 
     assert result.documents == ["some lesson text"]
-    assert result.metadata == [{"course_title": "Python", "lesson_number": 1, "chunk_index": 0}]
+    assert result.metadata == [
+        {"course_title": "Python", "lesson_number": 1, "chunk_index": 0}
+    ]
     assert result.error is None
     assert not result.is_empty()
 

@@ -3,6 +3,7 @@ Tests for CourseSearchTool, CourseOutlineTool, and ToolManager.
 
 VectorStore is replaced by MagicMock throughout — no ChromaDB access.
 """
+
 import pytest
 from unittest.mock import MagicMock
 from search_tools import CourseSearchTool, CourseOutlineTool, ToolManager
@@ -16,6 +17,7 @@ def _mock_store():
 # ---------------------------------------------------------------------------
 # CourseSearchTool.execute — happy path
 # ---------------------------------------------------------------------------
+
 
 def test_execute_returns_formatted_results_and_populates_sources():
     store = _mock_store()
@@ -31,21 +33,27 @@ def test_execute_returns_formatted_results_and_populates_sources():
 
     assert "[Py - Lesson 1]" in result
     assert "Lesson content about loops" in result
-    assert tool.last_sources == [{"text": "Py - Lesson 1", "link": "http://link/lesson1"}]
+    assert tool.last_sources == [
+        {"text": "Py - Lesson 1", "link": "http://link/lesson1"}
+    ]
     store.get_lesson_link.assert_called_once_with("Py", 1)
 
 
 def test_execute_with_course_and_lesson_filter_passes_args_to_search():
     store = _mock_store()
     store.search.return_value = SearchResults(
-        documents=["doc"], metadata=[{"course_title": "MCP", "lesson_number": 2}], distances=[0.2]
+        documents=["doc"],
+        metadata=[{"course_title": "MCP", "lesson_number": 2}],
+        distances=[0.2],
     )
     store.get_lesson_link.return_value = None
 
     tool = CourseSearchTool(store)
     tool.execute(query="protocol details", course_name="MCP", lesson_number=2)
 
-    store.search.assert_called_once_with(query="protocol details", course_name="MCP", lesson_number=2)
+    store.search.assert_called_once_with(
+        query="protocol details", course_name="MCP", lesson_number=2
+    )
 
 
 def test_execute_multiple_results_populates_multiple_sources():
@@ -71,6 +79,7 @@ def test_execute_multiple_results_populates_multiple_sources():
 # ---------------------------------------------------------------------------
 # CourseSearchTool.execute — empty results
 # ---------------------------------------------------------------------------
+
 
 def test_execute_no_results_returns_message_and_empty_sources():
     store = _mock_store()
@@ -98,6 +107,7 @@ def test_execute_no_results_with_course_filter_mentions_course():
 # CourseSearchTool.execute — error from VectorStore
 # ---------------------------------------------------------------------------
 
+
 def test_execute_search_error_returns_error_string_not_exception():
     """
     VectorStore.search() returns SearchResults.empty() on ChromaDB errors.
@@ -117,6 +127,7 @@ def test_execute_search_error_returns_error_string_not_exception():
 # ---------------------------------------------------------------------------
 # ToolManager lifecycle
 # ---------------------------------------------------------------------------
+
 
 def test_tool_manager_get_last_sources_returns_from_registered_tool():
     store = _mock_store()
@@ -175,6 +186,7 @@ def test_tool_manager_get_tool_definitions_includes_registered_tools():
 # ---------------------------------------------------------------------------
 # CourseOutlineTool
 # ---------------------------------------------------------------------------
+
 
 def test_course_outline_tool_happy_path():
     store = _mock_store()

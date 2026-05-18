@@ -1,4 +1,5 @@
 """Tests for AIGenerator sequential tool calling."""
+
 import pytest
 from unittest.mock import MagicMock
 from ai_generator import AIGenerator
@@ -47,6 +48,7 @@ def _make_generator():
 # Happy-path: direct response, no tool use
 # ---------------------------------------------------------------------------
 
+
 def test_direct_response_no_tool_use():
     gen = _make_generator()
     gen.client.messages.create.return_value = _make_response(
@@ -62,6 +64,7 @@ def test_direct_response_no_tool_use():
 # ---------------------------------------------------------------------------
 # First API call carries tools + tool_choice:auto
 # ---------------------------------------------------------------------------
+
 
 def test_first_api_call_includes_tools_and_tool_choice_auto():
     gen = _make_generator()
@@ -80,6 +83,7 @@ def test_first_api_call_includes_tools_and_tool_choice_auto():
 # 1-round tool use: second call has tools and tool_choice:auto
 # ---------------------------------------------------------------------------
 
+
 def test_1_round_tool_use_second_call_has_tools_and_tool_choice_auto():
     """
     In a 1-round flow (round_idx=0), the follow-up call uses tool_choice:auto
@@ -96,7 +100,9 @@ def test_1_round_tool_use_second_call_has_tools_and_tool_choice_auto():
     mock_tm = MagicMock()
     mock_tm.execute_tool.return_value = "search results"
 
-    result = gen.generate_response(query="What is MCP?", tools=[FAKE_TOOL], tool_manager=mock_tm)
+    result = gen.generate_response(
+        query="What is MCP?", tools=[FAKE_TOOL], tool_manager=mock_tm
+    )
 
     assert result == "Final answer"
     assert gen.client.messages.create.call_count == 2
@@ -109,6 +115,7 @@ def test_1_round_tool_use_second_call_has_tools_and_tool_choice_auto():
 # Message thread structure after 1 round
 # ---------------------------------------------------------------------------
 
+
 def test_tool_execution_message_thread_structure():
     gen = _make_generator()
 
@@ -120,7 +127,9 @@ def test_tool_execution_message_thread_structure():
     mock_tm = MagicMock()
     mock_tm.execute_tool.return_value = "tool output"
 
-    gen.generate_response(query="initial query", tools=[FAKE_TOOL], tool_manager=mock_tm)
+    gen.generate_response(
+        query="initial query", tools=[FAKE_TOOL], tool_manager=mock_tm
+    )
 
     second_call_kwargs = gen.client.messages.create.call_args_list[1][1]
     messages = second_call_kwargs["messages"]
@@ -141,6 +150,7 @@ def test_tool_execution_message_thread_structure():
 # 2-round tool use: third call has tool_choice:none
 # ---------------------------------------------------------------------------
 
+
 def test_2_round_tool_use():
     gen = _make_generator()
 
@@ -154,7 +164,9 @@ def test_2_round_tool_use():
     mock_tm = MagicMock()
     mock_tm.execute_tool.return_value = "results"
 
-    result = gen.generate_response(query="Complex query", tools=[FAKE_TOOL], tool_manager=mock_tm)
+    result = gen.generate_response(
+        query="Complex query", tools=[FAKE_TOOL], tool_manager=mock_tm
+    )
 
     assert result == "Final 2-round answer"
     assert gen.client.messages.create.call_count == 3
@@ -172,6 +184,7 @@ def test_2_round_tool_use():
 # Message thread structure after 2 rounds
 # ---------------------------------------------------------------------------
 
+
 def test_message_thread_after_2_rounds():
     gen = _make_generator()
 
@@ -185,7 +198,9 @@ def test_message_thread_after_2_rounds():
     mock_tm = MagicMock()
     mock_tm.execute_tool.return_value = "output"
 
-    gen.generate_response(query="Multi-round query", tools=[FAKE_TOOL], tool_manager=mock_tm)
+    gen.generate_response(
+        query="Multi-round query", tools=[FAKE_TOOL], tool_manager=mock_tm
+    )
 
     third_call_kwargs = gen.client.messages.create.call_args_list[2][1]
     messages = third_call_kwargs["messages"]
@@ -208,6 +223,7 @@ def test_message_thread_after_2_rounds():
 # ---------------------------------------------------------------------------
 # 2-round cap is enforced: no 4th API call
 # ---------------------------------------------------------------------------
+
 
 def test_2_round_cap_enforced():
     gen = _make_generator()
@@ -233,6 +249,7 @@ def test_2_round_cap_enforced():
 # ---------------------------------------------------------------------------
 # Tool error terminates loop gracefully
 # ---------------------------------------------------------------------------
+
 
 def test_tool_error_terminates_loop_gracefully():
     gen = _make_generator()
@@ -263,6 +280,7 @@ def test_tool_error_terminates_loop_gracefully():
 # ---------------------------------------------------------------------------
 # Edge case: tool_use stop_reason but no tool_manager → return first response text
 # ---------------------------------------------------------------------------
+
 
 def test_tool_use_stop_but_no_tool_manager_returns_first_response_text():
     gen = _make_generator()
