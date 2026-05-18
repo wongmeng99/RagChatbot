@@ -550,6 +550,28 @@ body.light-theme a.source-pill:hover {
     color: var(--primary-color);
 }
 
+.theme-toggle-btn {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    color: var(--primary-color);
+}
+
 /* Sidebar Headers */
 .stats-header,
 .suggested-header {

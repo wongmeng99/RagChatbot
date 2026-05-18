@@ -1,4 +1,5 @@
 """Tests for FastAPI endpoint request/response handling."""
+
 import sys
 import types
 from unittest.mock import MagicMock, patch
@@ -20,6 +21,7 @@ _static_patcher.start()
 from app import app  # noqa: E402  (imports after patches are in place)
 
 from fastapi.testclient import TestClient  # noqa: E402
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -41,7 +43,8 @@ class TestQueryEndpoint:
         inject_rag.query.return_value = ("Answer", [])
 
         resp = client.post(
-            "/api/query", json={"query": "What is Python?", "session_id": "existing-session"}
+            "/api/query",
+            json={"query": "What is Python?", "session_id": "existing-session"},
         )
 
         assert resp.status_code == 200
@@ -107,7 +110,11 @@ class TestCoursesEndpoint:
         assert resp.status_code == 200
         body = resp.json()
         assert body["total_courses"] == 3
-        assert body["course_titles"] == ["Intro to Python", "Advanced ML", "Data Engineering"]
+        assert body["course_titles"] == [
+            "Intro to Python",
+            "Advanced ML",
+            "Data Engineering",
+        ]
 
     def test_returns_empty_catalog(self, client, inject_rag):
         inject_rag.get_course_analytics.return_value = {
@@ -137,7 +144,9 @@ class TestDeleteSessionEndpoint:
 
         assert resp.status_code == 200
         assert resp.json() == {"status": "ok"}
-        inject_rag.session_manager.clear_session.assert_called_once_with("my-session-id")
+        inject_rag.session_manager.clear_session.assert_called_once_with(
+            "my-session-id"
+        )
 
     def test_nonexistent_session_still_returns_ok(self, client, inject_rag):
         # clear_session silently accepts any ID (no-op on unknown sessions)

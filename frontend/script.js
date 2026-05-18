@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     createNewSession();
     loadCourseStats();
+    initTheme();
 });
 
 // Event Listeners
@@ -45,6 +46,20 @@ function setupEventListeners() {
     });
 }
 
+
+// Theme
+function initTheme() {
+    const btn = document.getElementById('themeToggleBtn');
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-theme');
+        btn.textContent = '🌙 Dark Mode';
+    }
+    btn.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        btn.textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+}
 
 // Chat Functions
 async function sendMessage() {

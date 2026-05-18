@@ -25,7 +25,10 @@ def inject_rag(mock_rag):
     mock_rag.reset_mock(side_effect=True)
     mock_rag.session_manager.create_session.return_value = "session_1"
     mock_rag.query.return_value = ("Default answer", [])
-    mock_rag.get_course_analytics.return_value = {"total_courses": 0, "course_titles": []}
+    mock_rag.get_course_analytics.return_value = {
+        "total_courses": 0,
+        "course_titles": [],
+    }
     yield mock_rag
 
 
